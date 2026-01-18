@@ -7,8 +7,13 @@ class RunConfig(BaseModel):
     port: int = 8000
 
 
+class ApiPrefix(BaseModel):
+    currency: str = "/currency"
+
+
 class Settings(BaseSettings):
     run: RunConfig = RunConfig()
+    api: ApiPrefix = ApiPrefix()
 
 
 settings = Settings()
