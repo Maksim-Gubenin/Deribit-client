@@ -9,10 +9,10 @@ for the application.
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
-    create_async_engine,
     AsyncEngine,
-    async_sessionmaker,
     AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
 )
 
 from app.core.config import settings
@@ -33,13 +33,13 @@ class DatabaseHelper:
     """
 
     def __init__(
-            self,
-            url: str,
-            echo: bool,
-            echo_pool: bool,
-            pool_size: int = 5,
-            max_overflow: int = 10,
-    ):
+        self,
+        url: str,
+        echo: bool,
+        echo_pool: bool,
+        pool_size: int = 5,
+        max_overflow: int = 10,
+    ) -> None:
         """
         Initialize the DatabaseHelper with connection parameters.
 

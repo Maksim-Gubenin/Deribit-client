@@ -1,6 +1,6 @@
 import uvicorn
-
 from core.config import settings
+
 from app.create_fastapi_app import create_app
 
 app = create_app(
