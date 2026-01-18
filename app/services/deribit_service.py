@@ -21,14 +21,12 @@ class DeribitService:
 
     async def get_prices_with_by_date(
         self, ticker: str, start_ts: int | None = None, end_ts: int | None = None
-    ) -> Sequence[CurrencyPrice] | None:
+    ) -> Sequence[CurrencyPrice]:
         return await self.repo.get_by_range(
             ticker=ticker, start_ts=start_ts, end_ts=end_ts
         )
 
-    async def get_prices_by_all_date(
-        self, ticker: str
-    ) -> Sequence[CurrencyPrice] | None:
+    async def get_prices_by_all_date(self, ticker: str) -> Sequence[CurrencyPrice]:
         return await self.repo.get_all_by_ticker(ticker)
 
     async def get_last_known_price(self, ticker: str) -> CurrencyPrice | None:

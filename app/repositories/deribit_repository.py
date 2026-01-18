@@ -1,6 +1,8 @@
 from collections.abc import Sequence
+from typing import Optional, cast
 
 from sqlalchemy import select
+from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.models.currency_price import CurrencyPrice
@@ -15,10 +17,10 @@ class DeribitRepository:
         self.session.add(new_entry)
         await self.session.commit()
 
-    async def get_all_by_ticker(self, ticker: str) -> Sequence[CurrencyPrice] | None:
+    async def get_all_by_ticker(self, ticker: str) -> Sequence[CurrencyPrice]:
         stmt = select(CurrencyPrice).where(CurrencyPrice.ticker == ticker)
         result = await self.session.execute(stmt)
-        return result.scalars().all()
+        return list(result.scalars().all())
 
     async def get_latest(self, ticker: str) -> CurrencyPrice | None:
         stmt = (
@@ -27,12 +29,12 @@ class DeribitRepository:
             .order_by(CurrencyPrice.timestamp.desc())
             .limit(1)
         )
-        result = await self.session.execute(stmt)
-        return result.scalar_one_or_none()
+        result: Result = await self.session.execute(stmt)
+        return cast(CurrencyPrice | None, result.scalar_one_or_none())
 
     async def get_by_range(
         self, ticker: str, start_ts: int | None = None, end_ts: int | None = None
-    ) -> Sequence[CurrencyPrice] | None:
+    ) -> Sequence[CurrencyPrice]:
         """
         Получение цен с фильтрацией по временному диапазону (UNIX timestamp).
         """
@@ -47,4 +49,4 @@ class DeribitRepository:
         stmt = stmt.order_by(CurrencyPrice.timestamp.asc())
 
         result = await self.session.execute(stmt)
-        return result.scalars().all()
+        return list(result.scalars().all())
