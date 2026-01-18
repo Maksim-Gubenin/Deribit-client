@@ -29,9 +29,14 @@ class RunConfig(BaseModel):
     port: int = 8000
 
 
-class ApiPrefix(BaseModel):
+class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
-    currency: str = "/currency"
+    deribit: str = "/deribit"
+
+
+class ApiPrefix(BaseModel):
+    prefix: str = "/api"
+    v1: ApiV1Prefix = ApiV1Prefix()
 
 
 class Settings(BaseSettings):
