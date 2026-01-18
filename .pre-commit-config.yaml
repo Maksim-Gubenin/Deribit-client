@@ -1,20 +1,24 @@
 repos:
   - repo: https://github.com/psf/black
-    rev: 24.3.0
+    rev: 26.1.0
     hooks:
       - id: black
         language_version: python3.12
         stages: [pre-push]
+        args: ["--config", "pyproject.toml"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.2
+    rev: v0.14.13
     hooks:
       - id: ruff
         stages: [pre-push]
+        args: ["--config", "pyproject.toml"]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0
+    rev: v1.19.1
     hooks:
       - id: mypy
         additional_dependencies: ["pydantic"]
         stages: [pre-push]
+        exclude: ^alembic/
+        args: ["--config-file", "pyproject.toml"]
