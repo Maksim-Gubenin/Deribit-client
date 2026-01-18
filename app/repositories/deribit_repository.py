@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -5,20 +7,20 @@ from app.core.models.currency_price import CurrencyPrice
 
 
 class DeribitRepository:
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def add_price(self, ticker: str, price: float, timestamp: int):
+    async def add_price(self, ticker: str, price: float, timestamp: int) -> None:
         new_entry = CurrencyPrice(ticker=ticker, price=price, timestamp=timestamp)
         self.session.add(new_entry)
         await self.session.commit()
 
-    async def get_all_by_ticker(self, ticker: str):
+    async def get_all_by_ticker(self, ticker: str) -> Sequence[CurrencyPrice] | None:
         stmt = select(CurrencyPrice).where(CurrencyPrice.ticker == ticker)
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    async def get_latest(self, ticker: str):
+    async def get_latest(self, ticker: str) -> CurrencyPrice | None:
         stmt = (
             select(CurrencyPrice)
             .where(CurrencyPrice.ticker == ticker)
@@ -28,7 +30,9 @@ class DeribitRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_range(self, ticker: str, start_ts: int = None, end_ts: int = None):
+    async def get_by_range(
+        self, ticker: str, start_ts: int | None = None, end_ts: int | None = None
+    ) -> Sequence[CurrencyPrice] | None:
         """
         Получение цен с фильтрацией по временному диапазону (UNIX timestamp).
         """

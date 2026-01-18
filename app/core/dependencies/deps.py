@@ -13,7 +13,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import db_helper
 
-
 SessionDep = Annotated[AsyncSession, Depends(db_helper.session_getter)]
 """
 Type alias for SQLAlchemy async session dependency injection.
