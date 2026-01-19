@@ -44,7 +44,7 @@ async def test_get_all_by_ticker(test_session: AsyncSession) -> None:
     await repo.add_price("btc_usd", 50100.75, 1640995260123456)
     await repo.add_price("eth_usd", 3000.25, 1640995200123456)
 
-    btc_prices: list[CurrencyPrice] = await repo.get_all_by_ticker("btc_usd")
+    btc_prices = await repo.get_all_by_ticker("btc_usd")
     assert len(btc_prices) == 2
     assert all(p.ticker == "btc_usd" for p in btc_prices)
 
