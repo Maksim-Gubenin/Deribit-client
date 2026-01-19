@@ -18,6 +18,7 @@ from fastapi.openapi.docs import (
 from fastapi.responses import HTMLResponse, ORJSONResponse
 
 from app.api import api_router
+from app.api.frontend import frontend_router
 from app.core import db_helper
 
 
@@ -146,6 +147,7 @@ def create_app(
     )
 
     app.include_router(api_router)
+    app.include_router(frontend_router)
 
     if create_custom_static_urls:
         register_static_docs_routes(app)

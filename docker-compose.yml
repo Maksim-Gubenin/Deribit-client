@@ -1,20 +1,63 @@
 services:
-
-  pg:
-    image: postgres
+  postgres:
+    image: postgres:16-alpine
     environment:
       POSTGRES_DB: deribit
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d deribit"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:8-alpine
-    ports:
-      - "6379:6379"
 
-  adminer:
-    image: adminer
+  app:
+    build: .
     ports:
-      - "8080:8080"
+      - "8000:8000"
+    environment:
+      APP_CONFIG__DB__URL: postgresql+asyncpg://user:password@postgres:5432/deribit
+      APP_CONFIG__DB__ECHO: "false"
+      APP_CONFIG__RUN__HOST: 0.0.0.0
+      APP_CONFIG__RUN__PORT: 8000
+      APP_CONFIG__API__PREFIX: /api
+      APP_CONFIG__API__V1__PREFIX: /v1
+      APP_CONFIG__API__V1__DERIBIT: /deribit
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: >
+      sh -c "
+      echo 'Waiting for PostgreSQL...' &&
+      sleep 5 &&
+      echo 'Applying migrations...' &&
+      alembic upgrade head &&
+      echo 'Starting application...' &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+      "
+
+  celery:
+    build: .
+    environment:
+      APP_CONFIG__DB__URL: postgresql+asyncpg://user:password@postgres:5432/deribit
+      APP_CONFIG__DB__ECHO: "false"
+    depends_on:
+      - app
+      - redis
+    command: >
+      sh -c "
+      echo 'Waiting for app to be ready...' &&
+      sleep 15 &&
+      echo 'Starting Celery worker with Beat...' &&
+      celery -A app.core.celery_config.celery_app worker --loglevel=info -B
+      "
+
+volumes:
+  postgres_data:

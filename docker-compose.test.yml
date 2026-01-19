@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  postgres_test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: deribit_test
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"  # Другой порт, чтобы не конфликтовать с основной БД
+
+  tests:
+    build: .
+    environment:
+      APP_CONFIG__DB__URL: postgresql+asyncpg://user:password@postgres_test:5432/deribit_test
+      APP_CONFIG__DB__ECHO: "true"
+    depends_on:
+      - postgres_test
+    command: >
+      sh -c "
+      echo 'Waiting for test database...' &&
+      sleep 10 &&
+      echo 'Creating tables...' &&
+      alembic upgrade head &&
+      echo 'Running tests...' &&
+      python -m pytest tests/ -v --cov=app --cov-report=html
+      "
