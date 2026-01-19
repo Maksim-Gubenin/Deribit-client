@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Price Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--gray);
+            font-size: 1.2rem;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .crypto-icon {
+            font-size: 2.5rem;
+            margin-right: 15px;
+        }
+
+        .btc { color: #f7931a; }
+        .eth { color: #627eea; }
+
+        .price-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .current-price {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .btc-price { color: #f7931a; }
+        .eth-price { color: #627eea; }
+
+        .timestamp {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-refresh {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-refresh:hover {
+            background: var(--secondary);
+        }
+
+        .btn-history {
+            background: var(--light);
+            color: var(--dark);
+            border: 2px solid #ddd;
+        }
+
+        .btn-history:hover {
+            background: #e9ecef;
+        }
+
+        .data-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .data-section h3 {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: var(--gray);
+        }
+
+        .loader i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .error {
+            color: var(--danger);
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💰 Crypto Price Dashboard</h1>
+            <p class="subtitle">Real-time cryptocurrency prices from Deribit Exchange</p>
+            <p class="subtitle" style="margin-top: 10px;">Auto-updates every 60 seconds</p>
+        </header>
+
+        <div class="dashboard">
+            <!-- Bitcoin Card -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fab fa-bitcoin crypto-icon btc"></i>
+                    <div>
+                        <h2>Bitcoin (BTC/USD)</h2>
+                        <p>Current index price</p>
+                    </div>
+                </div>
+                <div class="price-container">
+                    <div id="btc-price" class="current-price btc-price">Loading...</div>
+                    <div id="btc-time" class="timestamp"></div>
+                </div>
+                <div class="controls">
+                    <button class="btn-refresh" onclick="refreshPrice('btc_usd', 'btc')">
+                        <i class="fas fa-sync-alt"></i> Refresh Now
+                    </button>
+                    <button class="btn-history" onclick="showHistory('btc_usd')">
+                        <i class="fas fa-history"></i> View History
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ethereum Card -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fab fa-ethereum crypto-icon eth"></i>
+                    <div>
+                        <h2>Ethereum (ETH/USD)</h2>
+                        <p>Current index price</p>
+                    </div>
+                </div>
+                <div class="price-container">
+                    <div id="eth-price" class="current-price eth-price">Loading...</div>
+                    <div id="eth-time" class="timestamp"></div>
+                </div>
+                <div class="controls">
+                    <button class="btn-refresh" onclick="refreshPrice('eth_usd', 'eth')">
+                        <i class="fas fa-sync-alt"></i> Refresh Now
+                    </button>
+                    <button class="btn-history" onclick="showHistory('eth_usd')">
+                        <i class="fas fa-history"></i> View History
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loader -->
+        <div id="loader" class="loader">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading data...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error" class="error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p id="error-message"></p>
+        </div>
+
+        <!-- Historical Data Section -->
+        <div class="data-section">
+            <h3><i class="fas fa-chart-line"></i> Historical Prices</h3>
+            <div style="margin-bottom: 20px;">
+                <label for="ticker-select">Select Cryptocurrency: </label>
+                <select id="ticker-select" onchange="loadHistoricalData()">
+                    <option value="btc_usd">Bitcoin (BTC/USD)</option>
+                    <option value="eth_usd">Ethereum (ETH/USD)</option>
+                </select>
+                <button onclick="loadHistoricalData()" style="margin-left: 10px; padding: 8px 15px;">
+                    <i class="fas fa-search"></i> Load
+                </button>
+            </div>
+            <div id="history-table-container">
+                <p>Select a cryptocurrency and click "Load" to view historical data</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>Powered by FastAPI & Deribit API | Data updates every 60 seconds</p>
+            <p>Last full update: <span id="last-update"></span></p>
+        </footer>
+    </div>
+
+    <script>
+        // Format price with commas and 2 decimal places
+        function formatPrice(price) {
+            return '$' + parseFloat(price).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Format timestamp to readable date
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = new Date(timestamp / 1000); // Convert microseconds to milliseconds
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        // Show/hide loader
+        function showLoader(show) {
+            document.getElementById('loader').style.display = show ? 'block' : 'none';
+        }
+
+        // Show error message
+        function showError(message) {
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error').style.display = 'block';
+        }
+
+        // Hide error message
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+
+        // Fetch latest price for a ticker
+        async function fetchLatestPrice(ticker, elementId) {
+            try {
+                hideError();
+                const response = await fetch(`/api/v1/deribit/latest?ticker=${ticker}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                // Update price display
+                const priceElement = document.getElementById(`${elementId}-price`);
+                const timeElement = document.getElementById(`${elementId}-time`);
+
+                priceElement.textContent = formatPrice(data.price);
+                timeElement.textContent = `Updated: ${formatTimestamp(data.timestamp)}`;
+
+                return data;
+            } catch (error) {
+                console.error(`Error fetching ${ticker}:`, error);
+                showError(`Failed to load ${ticker.toUpperCase()} price: ${error.message}`);
+                return null;
+            }
+        }
+
+        // Refresh price manually
+        async function refreshPrice(ticker, elementId) {
+            showLoader(true);
+            await fetchLatestPrice(ticker, elementId);
+            showLoader(false);
+
+            // Show success feedback
+            const button = event.target.closest('button');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check"></i> Refreshed!';
+            button.style.background = '#28a745';
+
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.style.background = '';
+            }, 1500);
+        }
+
+        // Load historical data
+        async function loadHistoricalData() {
+            const ticker = document.getElementById('ticker-select').value;
+            const cryptoName = ticker === 'btc_usd' ? 'Bitcoin' : 'Ethereum';
+
+            showLoader(true);
+            hideError();
+
+            try {
+                const response = await fetch(`/api/v1/deribit/?ticker=${ticker}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                if (data.items && data.items.length > 0) {
+                    displayHistoricalTable(data.items, cryptoName);
+                } else {
+                    document.getElementById('history-table-container').innerHTML =
+                        `<p>No historical data found for ${cryptoName}</p>`;
+                }
+            } catch (error) {
+                console.error('Error loading historical data:', error);
+                showError(`Failed to load historical data: ${error.message}`);
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        // Display historical data in a table
+        function displayHistoricalTable(items, cryptoName) {
+            const container = document.getElementById('history-table-container');
+
+            let html = `
+                <h4>${cryptoName} - Last ${items.length} Records</h4>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Price (USD)</th>
+                                <th>Ticker</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            // Show latest 20 records
+            const recentItems = items.slice(-20).reverse();
+
+            recentItems.forEach(item => {
+                html += `
+                    <tr>
+                        <td>${formatTimestamp(item.timestamp)}</td>
+                        <td style="font-weight: bold;">${formatPrice(item.price)}</td>
+                        <td>${item.ticker.toUpperCase()}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+                <p style="margin-top: 10px; color: #666;">
+                    Showing ${recentItems.length} most recent records out of ${items.length} total
+                </p>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // Show history for a specific ticker
+        function showHistory(ticker) {
+            document.getElementById('ticker-select').value = ticker;
+            loadHistoricalData();
+
+            // Scroll to history section
+            document.querySelector('.data-section').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+
+        // Update last update time
+        function updateLastUpdateTime() {
+            const now = new Date();
+            document.getElementById('last-update').textContent =
+                now.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+        }
+
+        // Initialize dashboard
+        async function initDashboard() {
+            showLoader(true);
+
+            // Fetch both prices
+            await Promise.all([
+                fetchLatestPrice('btc_usd', 'btc'),
+                fetchLatestPrice('eth_usd', 'eth')
+            ]);
+
+            // Load initial historical data
+            await loadHistoricalData();
+
+            showLoader(false);
+            updateLastUpdateTime();
+
+            // Auto-refresh every 60 seconds
+            setInterval(async () => {
+                await fetchLatestPrice('btc_usd', 'btc');
+                await fetchLatestPrice('eth_usd', 'eth');
+                updateLastUpdateTime();
+            }, 60000);
+        }
+
+        // Start the dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
