@@ -4,6 +4,32 @@
 ## Описание:
 Асинхронный клиент на Python для автоматического сбора и предоставления рыночных данных (index price) с биржи Deribit.
 
+## Архитектура системы
+```mermaid
+graph LR
+    subgraph "External World"
+        Deribit[Deribit API]
+    end
+
+    subgraph "Docker Stack"
+        subgraph "Background Tasks"
+            Beat[Celery Beat]
+            Worker[Celery Worker]
+        end
+        
+        Broker[(Redis)]
+        DB[(PostgreSQL)]
+        API[FastAPI App]
+    end
+
+    User((User)) <--> API
+    Beat -->|Schedule| Broker
+    Broker -->|Execute| Worker
+    Worker -->|Fetch JSON| Deribit
+    Worker -->|Insert| DB
+    API -->|Select| DB
+```
+
 ## Основные возможности:
 - **Автоматический сбор данных**: Фоновые задачи каждую минуту запрашивают цены BTC_USD и ETH_USD.
 - **RESTful API**: Интерфейс на FastAPI для доступа к историческим и актуальным данным.
