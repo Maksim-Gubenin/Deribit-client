@@ -6,7 +6,7 @@
 
 ## Демонстрация работы (Frontend Screenshot):
 
-<img width="2443" height="1108" alt="Снимок экрана (57)" src="https://github.com/user-attachments/assets/a7e6984d-9390-44a3-80f9-e91d2a3d1b7d" />
+<img width="2434" height="1097" alt="Снимок экрана (58)" src="https://github.com/user-attachments/assets/81948581-ad63-4016-b8ba-a0fa94603b8e" />
 
 ## Архитектура системы
 ```mermaid
