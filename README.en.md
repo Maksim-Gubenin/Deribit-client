@@ -4,6 +4,9 @@
 ## Description:
 An asynchronous Python-based client designed to automatically collect and serve market data (index prices) from the Deribit exchange.
 
+## Demonstration of work (Screenshot of the interface):
+
+<img width="2434" height="1097" alt="Снимок экрана (58)" src="https://github.com/user-attachments/assets/5af9d0a6-fa6b-423f-87b0-3fd88cb8b730" />
 
 ## System Architecture
 ```mermaid
