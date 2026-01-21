@@ -4,6 +4,10 @@
 ## Описание:
 Асинхронный клиент на Python для автоматического сбора и предоставления рыночных данных (index price) с биржи Deribit.
 
+## Демонстрация работы (Frontend Screenshot):
+
+<img width="2443" height="1108" alt="Снимок экрана (57)" src="https://github.com/user-attachments/assets/a7e6984d-9390-44a3-80f9-e91d2a3d1b7d" />
+
 ## Архитектура системы
 ```mermaid
 graph LR
